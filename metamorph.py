@@ -19,8 +19,6 @@ def main(args: argparse.Namespace):
     starting_format = file_format_heuristic(input_file_path)
     ending_format = file_format_heuristic(output_file_path, check_contents=False)
     
-    print(f"Going  from {starting_format} to {ending_format}")
-        
     return 0
 
 
