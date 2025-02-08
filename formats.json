@@ -1,0 +1,30 @@
+{
+    "jpeg": {
+        "jpg": { "cost": 1, "function": "rename" }
+    },
+    "jpg": {
+        "jpeg": { "cost": 1, "function": "rename" },
+        "png": { "cost": 2, "function": "img_to_img" },
+        "webp": { "cost": 2, "function": "img_to_img" },
+        "bmp": { "cost": 2, "function": "img_to_img" }
+    },
+    "png": {
+        "jpg": { "cost": 2, "function": "img_to_img" },
+        "webp": { "cost": 2, "function": "img_to_img" },
+        "bmp": { "cost": 2, "function": "img_to_img" }
+    },
+    "pdf": {
+        "png": { "cost": 3, "function": "pdf_to_img" },
+        "webp": { "cost": 3, "function": "pdf_to_img" },
+        "jpg": { "cost": 3, "function": "pdf_to_img" }
+    },
+    "eps": {
+        "png": { "cost": 2, "function": "eps_to_img" },
+        "webp": { "cost": 2, "function": "eps_to_img" },
+        "jpg": { "cost": 2, "function": "eps_to_img" }
+    },
+    "docx": {
+        "pdf": { "cost": 2, "function": "docx_to_pdf" },
+        "eps": { "cost": 2, "function": "docx_to_eps" }
+    }
+}

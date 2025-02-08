@@ -1,7 +1,10 @@
 import argparse
 import os
 import sys
+import tempfile
 
+from conversions import conversions
+from formats import find_path
 from utils import file_format_heuristic
 
 
@@ -18,6 +21,35 @@ def main(args: argparse.Namespace):
         
     starting_format = file_format_heuristic(input_file_path)
     ending_format = file_format_heuristic(output_file_path, check_contents=False)
+    
+    if starting_format is None:
+        print(f"Couldn't figure out the format for file '{input_file_path}'")
+        return 1
+
+    if ending_format is None:
+        print(f"Couldn't figure out the format for file '{output_file_path}'")
+        return 1
+    
+    path = find_path(starting_format, ending_format)
+    if path is None:
+        print(f"No valid conversion path from {starting_format} to {ending_format} was found")
+        return 1
+        
+    print("Valid conversion path found: ", end="")
+    for i, (src, dst, _) in enumerate(path):
+        if i == 0:
+            print(src, end="")
+        print(f" -> {dst}", end="")
+    print()
+    
+    with tempfile.TemporaryDirectory() as tmpdir:
+        working_file = input_file_path
+        basename = os.path.join(tmpdir, os.path.basename(working_file))
+        for src, dst, function_name in path:
+            new_file = basename + f".{dst}"
+            conversions[function_name](working_file, new_file)
+            working_file = new_file
+        os.rename(working_file, output_file_path)
     
     return 0
 
