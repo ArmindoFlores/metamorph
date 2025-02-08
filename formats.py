@@ -75,6 +75,11 @@ def find_path(in_format: str, out_format: str):
         print(f"Error: Invalid starting format '{in_format}'")
         return None
     
+    # FIXME: we're missing a step where we check the library requirements
+    # for converting; for example, we might need libwebp, ffmpeg, etc...
+    # If we find a viable path but not one that meets library requirements,
+    # we can suggest which libraries to install to the user.
+    
     starting_node = graph[in_format]
     ending_node = graph.get(out_format, GraphNode(out_format))
     path = graph_search(starting_node, ending_node)
