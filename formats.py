@@ -3,6 +3,7 @@ import os
 
 import PIL
 import PIL.Image
+import pypandoc
 
 from utils import GraphNode, graph_search
 
@@ -27,12 +28,83 @@ def get_PIL_formats():
                     possible_paths[extension][other_extension] = { "cost": 2, "function": "img_to_img" }
     return possible_paths
 
+def normalize_pandoc_format(fmt):
+    formats = {
+        "biblatex": "bib",
+        "bibtex": "bib",
+        "bits": "xml",
+        "commonmark": "md",
+        "commonmark_x": "md",
+        "creole": "creole",
+        "csljson": "json",
+        "csv": "csv",
+        "djot": "dj",
+        "docbook": "xml",
+        "docx": "docx",
+        "dokuwiki": "txt",
+        "endnotexml": "xml",
+        "epub": "epub",
+        "fb2": "fb2",
+        "gfm": "md",
+        "haddock": "hs",
+        "html": "html",
+        "ipynb": "ipynb",
+        "jats": "xml",
+        "jira": "txt",
+        "json": "json",
+        "latex": "tex",
+        "man": "man",
+        "markdown": "md",
+        "markdown_github": "md",
+        "markdown_mmd": "md",
+        "markdown_phpextra": "md",
+        "markdown_strict": "md",
+        "mdoc": "mdoc",
+        "mediawiki": "wiki",
+        "muse": "muse",
+        "native": "txt",
+        "odt": "odt",
+        "opml": "opml",
+        "org": "org",
+        "ris": "ris",
+        "rst": "rst",  # reStructuredText
+        "rtf": "rtf",
+        "t2t": "txt",
+        "textile": "textile",
+        "tikiwiki": "txt",
+        "tsv": "tsv",
+        "twiki": "txt",
+        "typst": "typ",
+        "vimwiki": "wiki",
+    }
+
+    fmt = formats.get(fmt, fmt)
+    # rst format can have extensions
+    if fmt[:3] == "rst":
+        fmt = "rest" + fmt[3:]
+    return fmt
+
+def get_pandoc_formats():
+    """This function uses pandoc to determine all possible trivial document conversions"""
+    from_formats, to_formats = pypandoc.get_pandoc_formats()
+    from_extensions = [normalize_pandoc_format(from_format) for from_format in from_formats]
+    to_extensions = [normalize_pandoc_format(to_format) for to_format in to_formats]
+    possible_paths = {}
+    for from_extension in from_extensions:
+        possible_paths[from_extension] = {
+            to_extension: { "cost": 2, "function": "pandoc_convert" }
+            for to_extension in to_extensions
+        }
+    return possible_paths
+
 def init_formats():
     formats_file = os.path.join(os.path.dirname(__file__), "formats.json")
     with open(formats_file, "r") as f:
         formats = json.load(f)
     PIL_formats = get_PIL_formats()
+    pandoc_formats = get_pandoc_formats()
     formats.update(PIL_formats)
+    formats.update(pandoc_formats)
     return formats
 
 def build_graph(formats):

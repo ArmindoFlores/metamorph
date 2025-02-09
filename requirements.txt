@@ -1,2 +1,3 @@
 filetype
 pillow
+pypandoc_binary
