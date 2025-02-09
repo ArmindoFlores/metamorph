@@ -22,9 +22,11 @@ mm input.png output.pdf
 
 ## 🔍 Features (Planned)
 - [x] Smart conversion pathfinding using graph search
+- [ ] Verify dependencies at runtime
+- [ ] When multiple same-cost paths are available, allow user to pick
 - [ ] Allow extra arguments for specific converts (like ffmpeg, pandoc, etc...)
-- [ ] Batch processing (ext[] → ext)
-- [ ] Multi-output support (ext → {ext1, ext2})
+- [ ] Batch processing (ext[] -> ext)
+- [ ] Multi-output support (ext -> {ext1, ext2})
 - [ ] Extensible: Define custom conversion rules
 - [ ] Plugin system for additional format support
 

@@ -1,3 +1,4 @@
 filetype
 pillow
 pypandoc_binary
+pdf2image

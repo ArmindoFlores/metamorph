@@ -28,6 +28,27 @@ def get_PIL_formats():
                     possible_paths[extension][other_extension] = { "cost": 2, "function": "img_to_img" }
     return possible_paths
 
+def get_pdf2image_formats():
+    """This function uses PIL to determine all possible conversions from pdf to an image"""
+    # FIXME: this only works with poppler installed
+    format_to_extension = {}
+    for extension, format_ in PIL.Image.registered_extensions().items():
+        format_to_extension.setdefault(format_, []).append(extension[1:])
+    
+    possible_paths = {
+        "pdf": {}
+    }
+    for format_ in PIL.Image.SAVE:
+        if format_ not in format_to_extension:
+            continue
+        extensions = format_to_extension[format_]
+        for extension in extensions:
+            possible_paths["pdf"][extension] = {
+                "cost": 10,
+                "function": "pdf2img"
+            }
+    return possible_paths
+
 def normalize_pandoc_format(fmt):
     formats = {
         "biblatex": "bib",
@@ -92,7 +113,7 @@ def get_pandoc_formats():
     possible_paths = {}
     for from_extension in from_extensions:
         possible_paths[from_extension] = {
-            to_extension: { "cost": 2, "function": "pandoc_convert" }
+            to_extension: { "cost": 5, "function": "pandoc_convert" }
             for to_extension in to_extensions
         }
     return possible_paths
@@ -101,10 +122,13 @@ def init_formats():
     formats_file = os.path.join(os.path.dirname(__file__), "formats.json")
     with open(formats_file, "r") as f:
         formats = json.load(f)
+    # FIXME: use a deep update (merge inner dictionaries)
     PIL_formats = get_PIL_formats()
     pandoc_formats = get_pandoc_formats()
+    pdf2latex_formats = get_pdf2image_formats()
     formats.update(PIL_formats)
     formats.update(pandoc_formats)
+    formats.update(pdf2latex_formats)
     return formats
 
 def build_graph(formats):

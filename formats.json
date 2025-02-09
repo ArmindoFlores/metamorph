@@ -1,6 +1,2 @@
 {
-    "docx": {
-        "pdf": { "cost": 2, "function": "docx_to_pdf" },
-        "eps": { "cost": 2, "function": "docx_to_eps" }
-    }
 }
