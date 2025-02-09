@@ -11,10 +11,8 @@ def rename(src: str, dst: str):
     os.rename(src, dst)
     
 def img_to_img(src: str, dst: str):
-    # TODO: it would be cool to parse PIL.features.pilinfo()
-    # TODO: to figure out what extensions we can use
     img = Image.open(src)
-    if dst.endswith(("jpg", "jpeg", "bmp")):
+    if src.endswith((".png", ".webp", ".ico")) and not dst.endswith((".png", ".webp", ".ico")):
         img = img.convert("RGB")
     img.save(dst)
 

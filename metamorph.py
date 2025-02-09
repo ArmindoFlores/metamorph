@@ -49,6 +49,8 @@ def main(args: argparse.Namespace):
             new_file = basename + f".{dst}"
             conversions[function_name](working_file, new_file)
             working_file = new_file
+        if os.path.isfile(output_file_path):
+            os.remove(output_file_path)
         os.rename(working_file, output_file_path)
     
     return 0

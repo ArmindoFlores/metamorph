@@ -1,59 +1,38 @@
-import heapq
 import json
 import os
-import typing
+
+import PIL
+import PIL.Image
+
+from utils import GraphNode, graph_search
 
 
-class GraphNode:
-    def __init__(self, extension):
-        self.extension = extension
-        self.children: typing.List[typing.Tuple["GraphNode", int, str]] = []
+def get_PIL_formats():
+    """This function uses PIL to determine all possible trivial image conversions"""
+    format_to_extension = {}
+    for extension, format_ in PIL.Image.registered_extensions().items():
+        format_to_extension.setdefault(format_, []).append(extension[1:])
         
-    def __repr__(self):
-        return f"<GraphNode ext={self.extension}>"
-    
-    def __hash__(self):
-        return hash(self.extension)
-        
-    def add_children(self, children: typing.List[typing.Tuple["GraphNode", int, str]]):
-        self.children.extend(children)
-        
-    def conversion_function_to(self, to: str):
-        for child, _, conversion_func in self.children:
-            if child.extension != to:
-                continue
-            return conversion_func
-        
-
-def graph_search(start: GraphNode, goal: GraphNode):
-    """
-    Perform Dijkstra's algorithm to find the shortest conversion path from start to goal.
-    """
-    priority_queue = [(0, id(start), start, [])]  # (cost, unique_id, current_node, path)
-    visited = set()
-    
-    while priority_queue:
-        cost, _, current, path = heapq.heappop(priority_queue)
-        
-        if current in visited:
+    possible_paths = {}
+    for format_ in PIL.Image.OPEN:
+        if format_ not in format_to_extension:
             continue
-        
-        visited.add(current)
-        path = path + [current.extension]
-        
-        if current.extension == goal.extension:
-            return path
-        
-        for neighbor, edge_cost, _ in current.children:
-            if neighbor not in visited:
-                heapq.heappush(priority_queue, (cost + edge_cost, id(neighbor), neighbor, path))
-    
-    return None
+        extensions = format_to_extension[format_]
+        for extension in extensions:
+            possible_paths[extension] = {}
+            for other_format in PIL.Image.SAVE:
+                if other_format not in format_to_extension:
+                    continue
+                for other_extension in format_to_extension[other_format]:
+                    possible_paths[extension][other_extension] = { "cost": 2, "function": "img_to_img" }
+    return possible_paths
 
 def init_formats():
     formats_file = os.path.join(os.path.dirname(__file__), "formats.json")
     with open(formats_file, "r") as f:
         formats = json.load(f)
+    PIL_formats = get_PIL_formats()
+    formats.update(PIL_formats)
     return formats
 
 def build_graph(formats):
