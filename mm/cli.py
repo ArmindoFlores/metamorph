@@ -1,14 +1,19 @@
 import argparse
 import os
+import shutil
 import sys
 import tempfile
 
 from mm.conversions import conversions
-from mm.formats import find_path
+from mm.formats import build_graph, init_formats, find_path
 from mm.utils import file_format_heuristic
+from mm.dependencies import available_dependencies
 
 
 def convert(args: argparse.Namespace):
+    # FIXME: use these dependencies
+    deps = available_dependencies(args)
+
     input_file_path =  args.input_file    
     output_file_path =  args.output_file
     
@@ -30,7 +35,9 @@ def convert(args: argparse.Namespace):
         print(f"Couldn't figure out the format for file '{output_file_path}'")
         return 1
     
-    path = find_path(starting_format, ending_format)
+    formats = init_formats()
+    graph = build_graph(formats)
+    path = find_path(graph, starting_format, ending_format)
     if path is None:
         print(f"No valid conversion path from {starting_format} to {ending_format} was found")
         return 1
@@ -51,7 +58,7 @@ def convert(args: argparse.Namespace):
             working_file = new_file
         if os.path.isfile(output_file_path):
             os.remove(output_file_path)
-        os.rename(working_file, output_file_path)
+        shutil.move(working_file, output_file_path)
     
     return 0
 
@@ -60,5 +67,9 @@ def main():
     parser.add_argument("input_file", type=str, help="The input file to be converted")
     parser.add_argument("output_file", type=str, help="The output file path")
     parser.add_argument("--overwrite", "-o", action="store_true", help="Overwrite the output file if it exists")
+    
+    parser.add_argument("--ffmpeg-path", type=str, help="Path to the ffmpeg binary")
+    parser.add_argument("--poppler-path", type=str, help="Path to the pdftotex binary")
+    
     args = parser.parse_args()
     sys.exit(convert(args))

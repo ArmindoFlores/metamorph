@@ -1,5 +1,7 @@
 __all__ = [
     "find_path",
+    "init_formats",
+    "build_graph"
 ]
 
 import json
@@ -148,8 +150,7 @@ def build_graph(formats):
         )
     return nodes
 
-def find_path(in_format: str, out_format: str):
-    graph = build_graph(init_formats())
+def find_path(graph: dict, in_format: str, out_format: str):
     if in_format not in graph:
         print(f"Error: Invalid starting format '{in_format}'")
         return None
