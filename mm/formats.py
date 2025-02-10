@@ -1,3 +1,7 @@
+__all__ = [
+    "find_path",
+]
+
 import json
 import os
 
@@ -5,7 +9,7 @@ import PIL
 import PIL.Image
 import pypandoc
 
-from utils import GraphNode, graph_search
+from mm.utils import GraphNode, graph_search
 
 
 def get_PIL_formats():

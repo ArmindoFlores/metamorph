@@ -3,12 +3,12 @@ import os
 import sys
 import tempfile
 
-from conversions import conversions
-from formats import find_path
-from utils import file_format_heuristic
+from mm.conversions import conversions
+from mm.formats import find_path
+from mm.utils import file_format_heuristic
 
 
-def main(args: argparse.Namespace):
+def convert(args: argparse.Namespace):
     input_file_path =  args.input_file    
     output_file_path =  args.output_file
     
@@ -55,11 +55,10 @@ def main(args: argparse.Namespace):
     
     return 0
 
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="A program to convert between most file extensions")
+def main():
+    parser = argparse.ArgumentParser("mm", description="A program to convert between most file extensions")
     parser.add_argument("input_file", type=str, help="The input file to be converted")
     parser.add_argument("output_file", type=str, help="The output file path")
     parser.add_argument("--overwrite", "-o", action="store_true", help="Overwrite the output file if it exists")
     args = parser.parse_args()
-    sys.exit(main(args))
+    sys.exit(convert(args))
