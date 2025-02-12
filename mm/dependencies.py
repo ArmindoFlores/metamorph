@@ -42,4 +42,4 @@ def available_dependencies(args: argparse.Namespace):
         ("ffmpeg", verify_ffmpeg),
         ("poppler", verify_poppler),
     )
-    return tuple(name for name, verifier in deps if verifier(args))
+    return set(name for name, verifier in deps if verifier(args))

@@ -6,6 +6,7 @@ __all__ = [
 
 import json
 import os
+import typing
 
 import PIL
 import PIL.Image
@@ -51,7 +52,8 @@ def get_pdf2image_formats():
         for extension in extensions:
             possible_paths["pdf"][extension] = {
                 "cost": 10,
-                "function": "pdf2img"
+                "function": "pdf2img",
+                "dependencies": ["poppler"]
             }
     return possible_paths
 
@@ -155,10 +157,10 @@ def build_graph(formats):
         )
     return nodes
 
-def find_path(graph: dict, in_format: str, out_format: str):
+def find_path(graph: dict, dependencies: typing.Set[str], in_format: str, out_format: str, ignore_dependencies: bool = False):
     if in_format not in graph:
         print(f"Error: Invalid starting format '{in_format}'")
-        return None
+        return None, None
     
     # FIXME: we're missing a step where we check the library requirements
     # for converting; for example, we might need libwebp, ffmpeg, etc...
@@ -167,12 +169,13 @@ def find_path(graph: dict, in_format: str, out_format: str):
     
     starting_node = graph[in_format]
     ending_node = graph.get(out_format, GraphNode(out_format))
-    path = graph_search(starting_node, ending_node)
-    if path is None:
-        return None
+    path, requirements = graph_search(starting_node, ending_node, dependencies, ignore_dependencies)
+    if path is None or requirements is None:
+        return None, None
     
     blueprint_conversion = [
         (src, dst, graph[src].conversion_function_to(dst)) for src, dst in zip(path[:-1], path[1:])
     ]
-    return blueprint_conversion
+
+    return blueprint_conversion, requirements
     

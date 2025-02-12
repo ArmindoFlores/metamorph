@@ -38,15 +38,17 @@ class GraphNodeEdge:
     dependencies: typing.List[str]
 
 
-def graph_search(start: GraphNode, goal: GraphNode):
+def graph_search(start: GraphNode, goal: GraphNode, dependencies: typing.Set[str], ignore_dependencies: bool = False):
     """
     Perform Dijkstra's algorithm to find the shortest conversion path from start to goal.
     """
-    priority_queue: typing.List[typing.Tuple[int, int, GraphNode, typing.List[str]]]  = [(0, id(start), start, [])]  # (cost, unique_id, current_node, path)
+    priority_queue: typing.List[typing.Tuple[int, int, GraphNode, typing.List[str], typing.Set[str]]]  = [
+        (0, id(start), start, [], set())
+    ]  # (cost, unique_id, current_node, path)
     visited = set()
     
     while priority_queue:
-        cost, _, current, path = heapq.heappop(priority_queue)
+        cost, _, current, path, requirements = heapq.heappop(priority_queue)
         
         if current in visited:
             continue
@@ -55,13 +57,17 @@ def graph_search(start: GraphNode, goal: GraphNode):
         path = path + [current.extension]
         
         if current.extension == goal.extension:
-            return path
+            return path, requirements
         
         for edge in current.edges:
             if edge.child not in visited:
-                heapq.heappush(priority_queue, (cost + edge.cost, id(edge.child), edge.child, path))
+                new_cost = cost + edge.cost
+                new_requirements = requirements.union(edge.dependencies)
+                if not ignore_dependencies and not dependencies.issuperset(new_requirements):
+                    new_cost += 1000
+                heapq.heappush(priority_queue, (new_cost, id(edge.child), edge.child, path, new_requirements))
     
-    return None
+    return None, None
 
 def file_format_heuristic(filepath: str, check_contents: bool = True):
     basename = os.path.basename(filepath)
