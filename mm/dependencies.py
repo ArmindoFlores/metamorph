@@ -24,14 +24,14 @@ def verify_cmd_utility(filepath: str, flags: typing.List[str], starting_text: st
 
 def verify_ffmpeg(args: argparse.Namespace) -> bool:
     return verify_cmd_utility(
-        args.ffmpeg_path if args.ffmpeg_path else "ffmpeg",
+        args.ffmpeg_path,
         ["-version"],
         "ffmpeg version"
     )
 
 def verify_poppler(args: argparse.Namespace) -> bool:
     return verify_cmd_utility(
-        args.poppler_path if args.poppler_path else "pdftotext",
+        args.poppler_path,
         [],
         None
     )

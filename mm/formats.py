@@ -4,8 +4,10 @@ __all__ = [
     "build_graph"
 ]
 
+import argparse
 import json
 import os
+import subprocess
 import typing
 
 import PIL
@@ -15,7 +17,7 @@ import pypandoc
 from mm.utils import GraphNode, GraphNodeEdge, graph_search
 
 
-def get_PIL_formats():
+def get_PIL_formats(args: argparse.Namespace):
     """This function uses PIL to determine all possible trivial image conversions"""
     format_to_extension = {}
     for extension, format_ in PIL.Image.registered_extensions().items():
@@ -35,7 +37,7 @@ def get_PIL_formats():
                     possible_paths[extension][other_extension] = { "cost": 2, "function": "img_to_img" }
     return possible_paths
 
-def get_pdf2image_formats():
+def get_pdf2image_formats(args: argparse.Namespace):
     """This function uses PIL to determine all possible conversions from pdf to an image"""
     # FIXME: this only works with poppler installed
     format_to_extension = {}
@@ -113,7 +115,7 @@ def normalize_pandoc_format(fmt):
         fmt = "rest" + fmt[3:]
     return fmt
 
-def get_pandoc_formats():
+def get_pandoc_formats(args: argparse.Namespace):
     """This function uses pandoc to determine all possible trivial document conversions"""
     from_formats, to_formats = pypandoc.get_pandoc_formats()
     from_extensions = [normalize_pandoc_format(from_format) for from_format in from_formats]
@@ -126,21 +128,64 @@ def get_pandoc_formats():
         }
     return possible_paths
 
-def init_formats():
+def get_ffmpeg_formats(args: argparse.Namespace):
+    """This function uses ffmpeg to determine all possible trivial video/audio conversions"""
+    try:
+        ffmpeg_formats_output = subprocess.check_output([args.ffmpeg_path, "-formats"], stderr=subprocess.DEVNULL)
+        decoded_ffmpeg_formats_output = ffmpeg_formats_output.decode().splitlines()
+    except (FileNotFoundError, subprocess.CalledProcessError, UnicodeDecodeError):
+        pass
+
+    to_formats = set()
+    from_formats = set()
+
+    parsing = False
+    for line in decoded_ffmpeg_formats_output:
+        if not parsing and line.startswith(" ---"):
+            parsing = True
+            continue
+        elif not parsing:
+            continue
+        if len(line) < 5:
+            continue
+        is_from_format = line[1] == "D"
+        is_to_format = line[2] == "E"
+        split_position = line.index(" ", 5)
+        extensions = line[5:split_position].strip().split(",")
+        for extension in extensions:
+            if is_from_format:
+                from_formats.add(extension)
+            if is_to_format:
+                to_formats.add(extension)
+
+    # FIXME: this does not check if we're going from video -> audio,
+    # audio -> audio, video -> video, or audio -> video
+    possible_paths = {}
+    for from_extension in from_formats:
+        possible_paths[from_extension] = {
+            to_extension: { "cost": 15, "function": "ffmpeg_simple", "dependencies": ["ffmpeg"] }
+            for to_extension in to_formats
+        }
+
+    return possible_paths
+
+def init_formats(args: argparse.Namespace):
     formats_file = os.path.join(os.path.dirname(__file__), "formats.json")
     with open(formats_file, "r") as f:
         formats = json.load(f)
     # FIXME: use a deep update (merge inner dictionaries)
-    PIL_formats = get_PIL_formats()
-    pandoc_formats = get_pandoc_formats()
-    pdf2latex_formats = get_pdf2image_formats()
+    PIL_formats = get_PIL_formats(args)
+    pandoc_formats = get_pandoc_formats(args)
+    pdf2image_formats = get_pdf2image_formats(args)
+    ffmpeg_formats = get_ffmpeg_formats(args)
     formats.update(PIL_formats)
     formats.update(pandoc_formats)
-    formats.update(pdf2latex_formats)
+    formats.update(pdf2image_formats)
+    formats.update(ffmpeg_formats)
     return formats
 
 def build_graph(formats):
-    nodes = {}
+    nodes: typing.Dict[str, GraphNode] = {}
     for format_name in formats.keys():
         nodes[format_name] = GraphNode(format_name)
     for format_name, format_conversions in formats.items():

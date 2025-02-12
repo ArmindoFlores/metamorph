@@ -22,7 +22,7 @@ mm input.png output.pdf
 
 ## 🔍 Features (Planned)
 - [x] Smart conversion pathfinding using graph search
-- [ ] Verify dependencies at runtime
+- [x] Verify dependencies at runtime
 - [ ] When multiple same-cost paths are available, allow user to pick
 - [ ] Allow extra arguments for specific converts (like ffmpeg, pandoc, etc...)
 - [ ] Batch processing (ext[] -> ext)

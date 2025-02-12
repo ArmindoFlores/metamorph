@@ -34,7 +34,7 @@ def convert(args: argparse.Namespace):
         print(f"Couldn't figure out the format for file '{output_file_path}'")
         return 1
     
-    formats = init_formats()
+    formats = init_formats(args)
     graph = build_graph(formats)
     path, requirements = find_path(graph, deps, starting_format, ending_format, args.ignore_dependencies)
     if path is None or requirements is None:
@@ -55,9 +55,17 @@ def convert(args: argparse.Namespace):
     for i, (src, dst, _) in enumerate(path):
         if i == 0:
             print(src, end="")
-        print(f" -> {dst}", end="")
+        starting_node = graph[src]
+        dependencies = set()
+        for edge in starting_node.edges:
+            if edge.child.extension == dst:
+                dependencies = edge.dependencies
+                break
+        if len(dependencies) > 0:
+            print(f" -({','.join(dependencies)})-> {dst}", end="")
+        else:
+            print(f" -> {dst}", end="")
     print()
-    print(f"Required tools: {requirements}")
 
     if args.dry_run:
         return 0
@@ -67,7 +75,7 @@ def convert(args: argparse.Namespace):
         basename = os.path.join(tmpdir, os.path.basename(working_file))
         for src, dst, function_name in path:
             new_file = basename + f".{dst}"
-            conversions[function_name](working_file, new_file)
+            conversions[function_name](working_file, new_file, args)
             working_file = new_file
         if os.path.isfile(output_file_path):
             os.remove(output_file_path)
@@ -85,8 +93,8 @@ def main():
     parser.add_argument("--input-format", type=str, help="Specify the input format")
     parser.add_argument("--output-format", type=str, help="Specify the output format")
     
-    parser.add_argument("--ffmpeg-path", type=str, help="Path to the ffmpeg binary")
-    parser.add_argument("--poppler-path", type=str, help="Path to the pdftotext binary")
+    parser.add_argument("--ffmpeg-path", type=str, default="ffmpeg", help="Path to the ffmpeg binary")
+    parser.add_argument("--poppler-path", type=str, default="pdftotext", help="Path to the pdftotext binary")
     
     args = parser.parse_args()
     sys.exit(convert(args))
