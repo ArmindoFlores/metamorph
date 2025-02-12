@@ -11,7 +11,7 @@ import PIL
 import PIL.Image
 import pypandoc
 
-from mm.utils import GraphNode, graph_search
+from mm.utils import GraphNode, GraphNodeEdge, graph_search
 
 
 def get_PIL_formats():
@@ -94,7 +94,7 @@ def normalize_pandoc_format(fmt):
         "opml": "opml",
         "org": "org",
         "ris": "ris",
-        "rst": "rst",  # reStructuredText
+        "rst": "rst",
         "rtf": "rtf",
         "t2t": "txt",
         "textile": "textile",
@@ -144,7 +144,12 @@ def build_graph(formats):
     for format_name, format_conversions in formats.items():
         nodes[format_name].add_children(
             [
-                (nodes.get(conversion_ext, GraphNode(conversion_ext)), details["cost"], details["function"])
+                GraphNodeEdge(
+                    child=nodes.get(conversion_ext, GraphNode(conversion_ext)),
+                    cost=details["cost"],
+                    conversion_function=details["function"],
+                    dependencies=details.get("dependencies", [])
+                )
                 for conversion_ext, details in format_conversions.items()
             ]
         )

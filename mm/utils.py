@@ -5,6 +5,7 @@ __all__ = [
 import heapq
 import os
 import typing
+from dataclasses import dataclass
 
 import filetype
 
@@ -12,7 +13,7 @@ import filetype
 class GraphNode:
     def __init__(self, extension):
         self.extension = extension
-        self.children: typing.List[typing.Tuple["GraphNode", int, str]] = []
+        self.edges: typing.List[GraphNodeEdge] = []
         
     def __repr__(self):
         return f"<GraphNode ext={self.extension}>"
@@ -20,21 +21,28 @@ class GraphNode:
     def __hash__(self):
         return hash(self.extension)
         
-    def add_children(self, children: typing.List[typing.Tuple["GraphNode", int, str]]):
-        self.children.extend(children)
+    def add_children(self, edge: typing.List["GraphNodeEdge"]):
+        self.edges.extend(edge)
         
     def conversion_function_to(self, to: str):
-        for child, _, conversion_func in self.children:
-            if child.extension != to:
+        for edge in self.edges:
+            if edge.child.extension != to:
                 continue
-            return conversion_func
+            return edge.conversion_function
         
+@dataclass
+class GraphNodeEdge:
+    child: GraphNode
+    cost: int
+    conversion_function: str
+    dependencies: typing.List[str]
+
 
 def graph_search(start: GraphNode, goal: GraphNode):
     """
     Perform Dijkstra's algorithm to find the shortest conversion path from start to goal.
     """
-    priority_queue = [(0, id(start), start, [])]  # (cost, unique_id, current_node, path)
+    priority_queue: typing.List[typing.Tuple[int, int, GraphNode, typing.List[str]]]  = [(0, id(start), start, [])]  # (cost, unique_id, current_node, path)
     visited = set()
     
     while priority_queue:
@@ -49,9 +57,9 @@ def graph_search(start: GraphNode, goal: GraphNode):
         if current.extension == goal.extension:
             return path
         
-        for neighbor, edge_cost, _ in current.children:
-            if neighbor not in visited:
-                heapq.heappush(priority_queue, (cost + edge_cost, id(neighbor), neighbor, path))
+        for edge in current.edges:
+            if edge.child not in visited:
+                heapq.heappush(priority_queue, (cost + edge.cost, id(edge.child), edge.child, path))
     
     return None
 

@@ -69,7 +69,7 @@ def main():
     parser.add_argument("--overwrite", "-o", action="store_true", help="Overwrite the output file if it exists")
     
     parser.add_argument("--ffmpeg-path", type=str, help="Path to the ffmpeg binary")
-    parser.add_argument("--poppler-path", type=str, help="Path to the pdftotex binary")
+    parser.add_argument("--poppler-path", type=str, help="Path to the pdftotext binary")
     
     args = parser.parse_args()
     sys.exit(convert(args))
