@@ -9,6 +9,7 @@ import subprocess
 from PIL import Image
 import pdf2image
 import pypandoc
+from pdf2docx import Converter
 
 
 def rename(src: str, dst: str, args: argparse.Namespace):
@@ -36,10 +37,16 @@ def pdf_to_img(src: str, dst: str, args: argparse.Namespace):
 def ffmpeg_simple(src: str, dst: str, args: argparse.Namespace):
     subprocess.run([args.ffmpeg_path, "-i", src, "-codec", "copy", dst])
 
+def pdf_to_docx(src: str, dst: str, args: argparse.Namespace):
+    cv = Converter(src)
+    cv.convert(dst, start=0, end=None)
+    cv.close()
+
 conversions = {
     "rename": rename,
     "img_to_img": img_to_img,
     "pandoc_convert": pandoc_covert,
     "pdf2img": pdf_to_img,
     "ffmpeg_simple": ffmpeg_simple,
+    "pdf_to_docx": pdf_to_docx
 }

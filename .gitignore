@@ -51,3 +51,9 @@ docs/_build/
 
 # Virtual Environment
 .venv/
+
+# Test folder
+tests/
+
+# macOS annoying file
+.DS_Store

@@ -182,6 +182,15 @@ def init_formats(args: argparse.Namespace):
     formats.update(pandoc_formats)
     formats.update(pdf2image_formats)
     formats.update(ffmpeg_formats)
+
+    if "pdf" not in formats:
+        formats["pdf"] = {}
+    formats["pdf"]["docx"] = {
+        "cost": 20,
+        "function": "pdf_to_docx",
+        "dependencies": []
+    }
+    
     return formats
 
 def build_graph(formats):
